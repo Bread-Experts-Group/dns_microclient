@@ -9,7 +9,7 @@ plugins {
 	application
 }
 
-group = "bread_experts_group"
+group = "org.bread_experts_group"
 version = "1.0.0"
 
 repositories {

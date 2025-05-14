@@ -45,7 +45,7 @@ val cache: MutableMap<String, MutableMap<DNSType, MutableSet<Pair<DNSResourceRec
 fun saveCache(record: DNSResourceRecord) = cache
 	.getOrPut(record.name) { mutableMapOf() }
 	.getOrPut(record.rrType) { mutableSetOf() }
-	.add(record to System.nanoTime() + record.timeToLive * 1000000)
+	.add(record to System.nanoTime() + record.timeToLive * 1000000000)
 fun getCache(name: String, type: DNSType) = cache
 	.getOrPut(name) { mutableMapOf() }
 	.getOrPut(type) { mutableSetOf() }
