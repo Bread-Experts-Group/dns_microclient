@@ -2,6 +2,7 @@ package org.bread_experts_group.dns_microclient
 
 import org.bread_experts_group.Flag
 import org.bread_experts_group.dns.DNSClass
+import org.bread_experts_group.dns.DNSLabelLiteral
 import org.bread_experts_group.dns.DNSMessage
 import org.bread_experts_group.dns.DNSOpcode
 import org.bread_experts_group.dns.DNSQuestion
@@ -82,7 +83,7 @@ fun main(args: Array<String>) {
 				recursiveQuery = false, checkingDisabled = true,
 				listOf(
 					DNSQuestion(
-						"$server.",
+						DNSLabelLiteral("$server."),
 						DNSType.PTR__DOMAIN_POINTER, DNSClass.IN__INTERNET
 					)
 				)
