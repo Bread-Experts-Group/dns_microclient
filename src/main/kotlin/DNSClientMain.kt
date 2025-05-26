@@ -1,12 +1,16 @@
-package org.bread_experts_group
+package org.bread_experts_group.dns_microclient
 
+import org.bread_experts_group.Flag
 import org.bread_experts_group.dns.DNSClass
 import org.bread_experts_group.dns.DNSMessage
 import org.bread_experts_group.dns.DNSOpcode
 import org.bread_experts_group.dns.DNSQuestion
 import org.bread_experts_group.dns.DNSType
-import org.bread_experts_group.socket.read16ui
-import org.bread_experts_group.socket.write16
+import org.bread_experts_group.logging.ColoredLogger
+import org.bread_experts_group.readArgs
+import org.bread_experts_group.stream.read16ui
+import org.bread_experts_group.stream.write16
+import org.bread_experts_group.stringToInt
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.DatagramPacket
@@ -17,7 +21,6 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
-import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.system.exitProcess
 
@@ -29,15 +32,37 @@ data class DNSServerTest(
 )
 
 fun main(args: Array<String>) {
-	val logger = Logger.getLogger("DNS Client Main")
-	logger.fine("- Argument read")
+	val logger = ColoredLogger.newLogger("DNS Client Main")
 	val (singleArgs, multipleArgs) = readArgs(
 		args,
-		Flag("ip", default = "127.0.0.1"),
-		Flag("port", default = 53, conv = ::stringToInt),
-		Flag<String>("dns_root", repeatable = true),
-		Flag("test_timeout", default = 2500, conv = ::stringToInt),
-		Flag("dns_timeout", default = 2500, conv = ::stringToInt)
+		"dns_microclient",
+		"Distribution of software for Bread Experts Group resolver clients for DNS.",
+		Flag(
+			"ip",
+			"The IP address to use for DNS resolver queries.",
+			default = "127.0.0.1"
+		),
+		Flag(
+			"port",
+			"The TCP / UDP port to use for DNS resolver queries.",
+			default = 53, conv = ::stringToInt
+		),
+		Flag<String>(
+			"dns_root",
+			"A DNS root server for bootstrapping DNS queries.",
+			repeatable = true,
+			required = 1
+		),
+		Flag(
+			"test_timeout",
+			"Timeout for connections to DNS root servers.",
+			default = 500, conv = ::stringToInt
+		),
+		Flag(
+			"dns_timeout",
+			"Timeout for DNS resolution queries.",
+			default = 500, conv = ::stringToInt
+		)
 	)
 	@Suppress("UNCHECKED_CAST")
 	val rootServersRaw = multipleArgs["dns_root"] as? List<String>
@@ -150,7 +175,7 @@ fun main(args: Array<String>) {
 				val packet = DatagramPacket(ByteArray(1500), 1500)
 				udpSocket.receive(packet)
 				Thread.currentThread().name = "UDP-${packet.socketAddress}"
-				val localLogger = Logger.getLogger("DNS UDP ${packet.socketAddress}")
+				val localLogger = ColoredLogger.newLogger("DNS UDP ${packet.socketAddress}")
 				val reply = resolverDns(
 					localLogger,
 					rootServers,
@@ -173,7 +198,7 @@ fun main(args: Array<String>) {
 			try {
 				Thread.currentThread().name = "TCP-${socket.remoteSocketAddress}"
 				val data = socket.inputStream.readNBytes(socket.inputStream.read16ui())
-				val localLogger = Logger.getLogger("DNS TCP ${socket.remoteSocketAddress}")
+				val localLogger = ColoredLogger.newLogger("DNS TCP ${socket.remoteSocketAddress}")
 				val reply = resolverDns(
 					localLogger,
 					rootServers,

@@ -1,5 +1,6 @@
-package org.bread_experts_group
+package org.bread_experts_group.dns_microclient
 
+import org.bread_experts_group.SingleArgs
 import org.bread_experts_group.dns.DNSClass
 import org.bread_experts_group.dns.DNSMessage
 import org.bread_experts_group.dns.DNSOpcode
@@ -7,8 +8,8 @@ import org.bread_experts_group.dns.DNSQuestion
 import org.bread_experts_group.dns.DNSResourceRecord
 import org.bread_experts_group.dns.DNSType
 import org.bread_experts_group.dns.readLabel
-import org.bread_experts_group.socket.read16ui
-import org.bread_experts_group.socket.write16
+import org.bread_experts_group.stream.read16ui
+import org.bread_experts_group.stream.write16
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.DatagramPacket

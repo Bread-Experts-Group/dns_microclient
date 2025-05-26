@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "org.bread_experts_group"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
 	mavenCentral()
@@ -18,15 +18,19 @@ repositories {
 }
 
 dependencies {
-	implementation("org.bread_experts_group:bread_server_lib-code:2.0.9")
+	implementation("org.bread_experts_group:bread_server_lib-code:2.8.5")
 }
 
 tasks.test {
 	useJUnitPlatform()
 }
 application {
-	mainClass = "org.bread_experts_group.DNSClientMainKt"
-	applicationDefaultJvmArgs = listOf("-XX:+UseZGC", "-XX:+ZGenerational", "-Xmx256m", "-XX:SoftMaxHeapSize=128m")
+	mainClass = "org.bread_experts_group.dns_microclient.DNSClientMainKt"
+	applicationDefaultJvmArgs = listOf(
+		"-XX:+UseZGC", "-Xms256m", "-Xmx256m", "-XX:SoftMaxHeapSize=128m", "-server",
+		"-XX:MaxDirectMemorySize=128m", "-XX:+AlwaysPreTouch", "-XX:+UseLargePages",
+		"-XX:+DisableExplicitGC", "-XX:MaxTenuringThreshold=1", "-XX:MaxGCPauseMillis=20"
+	)
 }
 
 kotlin {
