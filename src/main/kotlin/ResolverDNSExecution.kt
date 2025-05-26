@@ -2,11 +2,13 @@ package org.bread_experts_group.dns_microclient
 
 import org.bread_experts_group.SingleArgs
 import org.bread_experts_group.dns.DNSClass
+import org.bread_experts_group.dns.DNSLabelLiteral
 import org.bread_experts_group.dns.DNSMessage
 import org.bread_experts_group.dns.DNSOpcode
 import org.bread_experts_group.dns.DNSQuestion
 import org.bread_experts_group.dns.DNSResourceRecord
 import org.bread_experts_group.dns.DNSType
+import org.bread_experts_group.dns.opt.DNSOptionRecord
 import org.bread_experts_group.dns.readLabel
 import org.bread_experts_group.stream.read16ui
 import org.bread_experts_group.stream.write16
@@ -44,7 +46,7 @@ fun tcpSendQuery(data: ByteArray, to: InetAddress, timeout: Int): Pair<DNSMessag
 
 val cache: MutableMap<String, MutableMap<DNSType, MutableSet<Pair<DNSResourceRecord, Long>>>> = mutableMapOf()
 fun saveCache(record: DNSResourceRecord) = cache
-	.getOrPut(record.name) { mutableMapOf() }
+	.getOrPut((record.name as DNSLabelLiteral).literal) { mutableMapOf() }
 	.getOrPut(record.rrType) { mutableSetOf() }
 	.add(record to System.nanoTime() + record.timeToLive * 1000000000)
 fun getCache(name: String, type: DNSType) = cache
@@ -106,10 +108,9 @@ fun dnsResolution(
 					)
 					if (resent == null) return null
 					val reparsed = DNSMessage.reply(
-						query.transactionID, null, resent.first.opcode,
-						resent.first.authoritative, resent.first.authenticData,
-						resent.first.recursionAvailable, resent.first.responseCode,
-						resent.first.questions, resent.first.answers,
+						query, null, resent.first.authoritative,
+						resent.first.authenticData, true,
+						resent.first.responseCode, resent.first.answers,
 						resent.first.authorityRecords, resent.first.additionalRecords
 					)
 					return reparsed to ByteArrayOutputStream().use {
@@ -127,7 +128,10 @@ fun dnsResolution(
 			)
 		}.forEach { nextAuthority ->
 			while (true) {
-				val found = getCache(nextAuthority, DNSType.A__IPV4_ADDRESS)
+				val found = getCache(
+					(nextAuthority as DNSLabelLiteral).literal,
+					DNSType.A__IPV4_ADDRESS
+				)
 				if (found != null) {
 					responsible.push(InetAddress.getByAddress(found.rrData))
 					break
@@ -141,6 +145,9 @@ fun dnsResolution(
 								recursiveQuery = false, checkingDisabled = false,
 								listOf(
 									DNSQuestion(nextAuthority, DNSType.A__IPV4_ADDRESS, DNSClass.IN__INTERNET)
+								),
+								additionalRecords = listOf(
+									DNSOptionRecord(65535)
 								)
 							).write(it)
 							it.toByteArray()
