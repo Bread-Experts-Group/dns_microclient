@@ -85,7 +85,9 @@ fun dnsResolution(
 			message.answers.firstOrNull()?.let { a ->
 				if (
 					a.rrType == DNSType.CNAME__CANONICAL_NAME &&
-					query.questions.first { q -> q.name == a.name }.qType != DNSType.CNAME__CANONICAL_NAME
+					query.questions.first { q ->
+						(q.name as DNSLabelLiteral).literal == (a.name as DNSLabelLiteral).literal
+					}.qType != DNSType.CNAME__CANONICAL_NAME
 				) {
 					val resent = dnsResolution(
 						logger,
